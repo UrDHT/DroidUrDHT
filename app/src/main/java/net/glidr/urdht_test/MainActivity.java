@@ -16,6 +16,10 @@ public class MainActivity extends Activity {
     private GetMyIpAddress gmi;
     private HashFunction hash;
     private boolean netflag = true;
+    boolean started = false;
+    boolean flag1 = false;
+    boolean flag2 = false;
+    boolean flag3 = false;
 
     private String build = "00001";
 
@@ -51,31 +55,37 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 Log.d(str, "Start Pressed");
 
-                new LongTask(txtLocIP, txtPubIP, gmi).execute();
+                new LongTaskLoc(txtLocIP, txtPubIP, gmi).execute();
+                new LongTaskPub(txtLocIP, txtPubIP, gmi).execute();
                 new LongHash(hash, gmi).execute();
 
-                //change below to make a separate process
-                //Intent i = new Intent(getApplicationContext(), UrDHTService.class);
-                Intent i1 = new Intent(MainActivity.this, UrDHTService.class);
-                Intent i2 = new Intent(MainActivity.this, UrDHTService.class);
+                //avoid crashing because of unpopulated fields due to async task
+                while (!flag1 || !flag2 || !flag3) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Log.d(str, e.toString());
+                    }
+                }
 
-//                i1.putExtra("port",   gmi.bindPort);
-//                i2.putExtra("wsport", gmi.wsBindPort);
-//                i1.putExtra("pubIP",  gmi.publicIP);
-//                i2.putExtra("pubIP",  gmi.publicIP);
+                if(started) return;
+                started = true;
+                Intent i = new Intent(MainActivity.this, UrDHTService.class);
 
-                MainActivity.this.startService(i1);
-                MainActivity.this.startService(i2);
+                i.putExtra("publicIP",  gmi.publicIP);
+                i.putExtra("localIP", gmi.inetAddr);
+
+                MainActivity.this.startService(i);
 
                 if(!netflag) {
                     txtLocIP.setText("No Network");
                     txtPubIP.setText("Disconnected - STOPPED");
                     txtRemoteBuild.setText("-NA-");
-                    MainActivity.this.stopService(i1);
-                    MainActivity.this.stopService(i2);
-
+                    MainActivity.this.stopService(i);
+                    flag1 = false;
+                    flag2 = false;
+                    flag3 = false;
                 }
-
             }
         });
 
@@ -86,11 +96,12 @@ public class MainActivity extends Activity {
                 txtLocIP.setText("Disconnected");
                 txtPubIP.setText("Disconnected");
                 txtRemoteBuild.setText("-NA-");
-                Intent i1 = new Intent(MainActivity.this, UrDHTService.class);
-                Intent i2 = new Intent(MainActivity.this, UrDHTWSService.class);
-                MainActivity.this.stopService(i1);
-                MainActivity.this.stopService(i2);
-
+                Intent i = new Intent(MainActivity.this, UrDHTService.class);
+                MainActivity.this.stopService(i);
+                flag1 = false;
+                flag2 = false;
+                flag3 = false;
+                started = false;
             }
         });
 
@@ -119,12 +130,11 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class LongTask extends AsyncTask<Void, Void, Void> {
-        TextView loc, pub;
+    private class LongTaskLoc extends AsyncTask<Void, Void, Void> {
+        TextView loc;
         GetMyIpAddress ip;
-        private LongTask(TextView loc, TextView pub, GetMyIpAddress g) {
+        private LongTaskLoc(TextView loc, TextView pub, GetMyIpAddress g) {
             this.loc = loc;
-            this.pub = pub;
             this.ip = g;
         }
 
@@ -132,21 +142,46 @@ public class MainActivity extends Activity {
         protected Void doInBackground(Void... urls){
             if( this.ip.isOnline() ) {
                 this.ip.updateIpAddress();
-                this.ip.getGateway();
             } else {
                 Log.d("AsyncTask", "No Network!");
                 this.ip.inetAddr = "No Network";
-                this.ip.publicIP = "No Network";
             }
+            flag1 = true;
             return null;
         }
 
         @Override
         protected void onPostExecute(Void s) {
             this.loc.setText(this.ip.inetAddr);
+        }
+    }
+
+    private class LongTaskPub extends AsyncTask<Void, Void, Void> {
+        TextView pub;
+        GetMyIpAddress ip;
+        private LongTaskPub(TextView loc, TextView pub, GetMyIpAddress g) {
+            this.pub = pub;
+            this.ip = g;
+        }
+
+        @Override
+        protected Void doInBackground(Void... urls){
+            if( this.ip.isOnline() ) {
+                this.ip.getGateway();
+            } else {
+                Log.d("AsyncTask", "No Network!");
+                this.ip.publicIP = "No Network";
+            }
+            flag2 = true;
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void s) {
             this.pub.setText(this.ip.publicIP);
         }
     }
+
     private class LongHash extends AsyncTask<Void, Void, Void> {
         HashFunction hash;
         GetMyIpAddress ip;
@@ -163,6 +198,7 @@ public class MainActivity extends Activity {
             } else {
                 Log.d("AsyncTask", "No Network!");
             }
+            flag3 = true;
             return null;
         }
 
