@@ -12,8 +12,8 @@ import java.util.Comparator;
 public class EuclideanSpaceMath {
     private static String fun = "Euclid Space Math";
     Point me;
-    public EuclideanSpaceMath(String str) {
-        me = new Point(str);
+    public EuclideanSpaceMath(String str, int i) {
+        me = new Point(str, i);
     }
 
 
@@ -83,7 +83,7 @@ public class EuclideanSpaceMath {
             }
         });
 
-
+        return q;
     }
 
 }
