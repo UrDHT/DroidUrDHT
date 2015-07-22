@@ -149,6 +149,7 @@ public class MainActivity extends Activity {
         protected Void doInBackground(Void... urls){
             if( this.ip.isOnline() ) {
                 this.hash.genHash("http://"+this.ip.publicIP +":"+this.ip.bindPort);
+                //this.hash.genHash("http://45.79.205.125:8002/");
             } else {
                 Log.d("AsyncTask", "No Network!");
             }

@@ -71,7 +71,6 @@ public class EuclideanSpaceMath {
     }
 
     public Point getClosest(Point p, ArrayList<Point> candidates) {
-        Point q = new Point();
         ArrayList<Point> sortedPeers = new ArrayList<Point>(candidates);
 
         for(Point c: sortedPeers) c.distanceFrom = euclideanDistance(p, c);
@@ -82,8 +81,7 @@ public class EuclideanSpaceMath {
                 return new Float(p1.distanceFrom).compareTo(new Float(p2.distanceFrom));
             }
         });
-
-        return q;
+        return sortedPeers.get(0);
     }
 
 }
