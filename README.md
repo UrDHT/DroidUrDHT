@@ -3,6 +3,8 @@
 This is really REALLY messy and badly organized... it needs to be torn apart and redone.
 
 Mostly I am cutting corners because I need it to be finished in about a day and a half. you have been warned
+Source is here: app/src/main/java/net/glidr/urdht_test
+
 
 Hashing ... done
   (note - port multihash to java... that looks cool)
