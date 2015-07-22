@@ -122,7 +122,7 @@ public class GetMyIpAddress {
     public boolean isOnline() {
         try{
             Socket s = new Socket();
-            //this is one of google's round robin
+            //this is one of google's round robin ips
             SocketAddress sa = new InetSocketAddress("173.194.219.106", 80);
             s.connect(sa, 5000);
             s.close();

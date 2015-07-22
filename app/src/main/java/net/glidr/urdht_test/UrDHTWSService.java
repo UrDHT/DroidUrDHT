@@ -21,12 +21,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 
-public class UrDHTService extends Service {
+public class UrDHTWSService extends Service {
     private static String str = "Android UrDHTService";
     public static final String SERVICE_TYPE = "_http._tcp.";
 
-    private static String SERVICE_NAME = "TCP_SERVICE";
-    private static int bindPort = 8551;
+    private static String SERVICE_NAME = "WS_TCP_SERVICE";
+    private static int wsBindPort = 8552;
     private static String publicIP;
 
     NsdManager manager;
@@ -61,11 +61,10 @@ public class UrDHTService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //TODO
-//        bindPort = intent.getStringExtra("bindPort");
+//        wsBindPort = intent.getStringExtra("wsBindPort");
 //        publicIP = intent.getStringExtra("publicIP");
 
         Log.d(str, "onStartCommand() called!");
-        new serviceThread().start();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -151,7 +150,7 @@ public class UrDHTService extends Service {
     }
 
 
-    private class serviceThread extends Thread {
+    private class wsServiceThread extends Thread {
         ServerSocket socket = null;
         @Override
         public void run() {
@@ -159,7 +158,7 @@ public class UrDHTService extends Service {
             try {
                 socket = new ServerSocket(0);
                 socket.setReuseAddress(true);
-                //socket.bind(new InetSocketAddress(bindPort));
+                //socket.bind(new InetSocketAddress(wsBindPort));
 
             } catch (IOException e) {
                 Log.d(str, e.toString());

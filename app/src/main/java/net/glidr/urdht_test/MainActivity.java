@@ -56,17 +56,24 @@ public class MainActivity extends Activity {
 
                 //change below to make a separate process
                 //Intent i = new Intent(getApplicationContext(), UrDHTService.class);
-                Intent i = new Intent(MainActivity.this, UrDHTService.class);
-                i.putExtra("name", "Start DHT");
-                i.putExtra("build", "build");
-                MainActivity.this.startService(i);
-                txtRemoteBuild.setText(i.getStringExtra("build"));
+                Intent i1 = new Intent(MainActivity.this, UrDHTService.class);
+                Intent i2 = new Intent(MainActivity.this, UrDHTService.class);
+
+//                i1.putExtra("port",   gmi.bindPort);
+//                i2.putExtra("wsport", gmi.wsBindPort);
+//                i1.putExtra("pubIP",  gmi.publicIP);
+//                i2.putExtra("pubIP",  gmi.publicIP);
+
+                MainActivity.this.startService(i1);
+                MainActivity.this.startService(i2);
 
                 if(!netflag) {
                     txtLocIP.setText("No Network");
                     txtPubIP.setText("Disconnected - STOPPED");
                     txtRemoteBuild.setText("-NA-");
-                    MainActivity.this.stopService(i);
+                    MainActivity.this.stopService(i1);
+                    MainActivity.this.stopService(i2);
+
                 }
 
             }
@@ -79,8 +86,11 @@ public class MainActivity extends Activity {
                 txtLocIP.setText("Disconnected");
                 txtPubIP.setText("Disconnected");
                 txtRemoteBuild.setText("-NA-");
-                Intent i = new Intent(MainActivity.this, UrDHTService.class);
-                MainActivity.this.stopService(i);
+                Intent i1 = new Intent(MainActivity.this, UrDHTService.class);
+                Intent i2 = new Intent(MainActivity.this, UrDHTWSService.class);
+                MainActivity.this.stopService(i1);
+                MainActivity.this.stopService(i2);
+
             }
         });
 
