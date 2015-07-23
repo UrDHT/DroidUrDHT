@@ -16,13 +16,15 @@ public class WSClientThread extends Thread {
     final BufferedReader reader;
     final OutputStream output;
     final String service;
+    DataBase db;
 
-    public WSClientThread(Socket s, String service) throws IOException {
+    public WSClientThread(Socket s, String service, DataBase db) throws IOException {
         Log.d("client thread", "new client thread spawned at socket:" + s.toString());
         this.socket = s;
         this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.output = socket.getOutputStream();
         this.service = service;
+        this.db = db;
     }
 
     @Override

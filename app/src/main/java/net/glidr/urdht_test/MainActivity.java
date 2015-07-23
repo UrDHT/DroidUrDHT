@@ -13,8 +13,9 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
     private String str = "Android UrDHT Main Activity";
-    private GetMyIpAddress gmi;
-    private HashFunction hash;
+    DataBase db = (DataBase)getApplication();
+
+
     private boolean netflag = true;
     boolean started = false;
     boolean flag1 = false;
@@ -36,9 +37,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        gmi = new GetMyIpAddress();
-        hash = new HashFunction();
-
         txtLocIP = (TextView)findViewById(R.id.txtLocIP);
         txtPubIP = (TextView)findViewById(R.id.txtPubIP);
         txtLocalBuild = (TextView)findViewById(R.id.txtLocalBuild);
@@ -55,25 +53,13 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 Log.d(str, "Start Pressed");
 
-                new LongTaskLoc(txtLocIP, txtPubIP, gmi).execute();
-                new LongTaskPub(txtLocIP, txtPubIP, gmi).execute();
-                new LongHash(hash, gmi).execute();
-
-                //avoid crashing because of unpopulated fields due to async task
-                while (!flag1 || !flag2 || !flag3) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Log.d(str, e.toString());
-                    }
-                }
+                new LongTaskLoc(txtLocIP, txtPubIP, db.gmi).execute();
+                new LongTaskPub(txtLocIP, txtPubIP, db.gmi).execute();
+                new LongHash(db.hash, db.gmi).execute();
 
                 if(started) return;
                 started = true;
                 Intent i = new Intent(MainActivity.this, UrDHTService.class);
-
-                i.putExtra("publicIP",  gmi.publicIP);
-                i.putExtra("localIP", gmi.inetAddr);
 
                 MainActivity.this.startService(i);
 

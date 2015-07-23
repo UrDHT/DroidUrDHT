@@ -9,14 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -24,6 +20,8 @@ import java.net.Socket;
 
 public class UrDHTService extends Service {
     private static String str = "Android Service";
+    DataBase db = (DataBase)getApplication();
+
     public static final String SERVICE_TYPE = "_http._tcp.";
 
     private static String SERVICE_NAME1 = "UrDHT_SERVICE";
@@ -67,9 +65,6 @@ public class UrDHTService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //TODO
-
-        publicIP = intent.getStringExtra("publicIP");
-        localIP = intent.getStringExtra("localIP");
 
         Log.d(str, "onStartCommand() called!");
         new serviceThread().start();
@@ -192,7 +187,7 @@ public class UrDHTService extends Service {
                 Socket msock;
                 try {
                     msock = socket.accept();
-                    new ClientThread(msock, SERVICE_NAME1).start();
+                    new ClientThread(msock, SERVICE_NAME1, db).start();
                 } catch (IOException e) {
                     Log.d(str, e.toString());
                     throw new RuntimeException(e);
@@ -226,7 +221,7 @@ public class UrDHTService extends Service {
                 Socket msock = null;
                 try {
                     msock = socket.accept();
-                    new WSClientThread(msock, SERVICE_NAME2).start();
+                    new WSClientThread(msock, SERVICE_NAME2, db).start();
                 } catch (IOException e) {
                     Log.d(str, e.toString());
                     throw new RuntimeException(e);
@@ -243,7 +238,7 @@ public class UrDHTService extends Service {
      * @param name
      */
     public void registerService(int port, String name) {
-        tearDown();
+//        tearDown();
         initRegistrationListener();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
         serviceInfo.setServiceName(name);
