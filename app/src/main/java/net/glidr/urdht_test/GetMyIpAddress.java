@@ -30,8 +30,8 @@ public class GetMyIpAddress {
     private static String addr = "Android UrDHT GET_IP";
     static String inetAddr = "0.0.0.0";
     static String publicIP = "0.0.0.0";
-    static String bindPort = "8001";
-    static String wsBindPort = "8002";
+    static String bindPort = "8551";
+    static String wsBindPort = "8552";
     static String hostname = "NONE";
     static boolean pub;
 
@@ -100,7 +100,7 @@ public class GetMyIpAddress {
         return true;
     }
 
-    public String getGateway() {
+    public void getGateway() {
         Log.d(addr, "Getting public ip");
         try {
             HttpClient client = new DefaultHttpClient();
@@ -116,7 +116,7 @@ public class GetMyIpAddress {
             Log.d(addr, e.toString());
         }
         Log.d(addr, publicIP);
-        return publicIP;
+        return;
     }
 
     public boolean isOnline() {

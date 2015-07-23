@@ -2,7 +2,10 @@ package net.glidr.urdht_test;
 
 import android.util.Log;
 
-import java.sql.DatabaseMetaData;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,7 +62,7 @@ public abstract class ParseRequest {
                 Log.d(log, "(poll)" + parts[4] + " for " + parts[5] + " " + parts[6]);
             } else if(parts[4].equals("getPeers")) {
                 Log.d(log, "(getPeers)" + parts[4]);
-                return getPeers(method, parts[3], service);
+                return getPeers(method, parts[3], service, db);
             } else if (parts[4].equals("getmyIP")) {
                 Log.d(log, "(getmyIP)" + parts[4]);
                 return getmyIP(method, parts[3], service, db);
@@ -152,9 +155,35 @@ public abstract class ParseRequest {
      * @param service type of service being used... websocket etc.
      * @return json object of current peers
      */
-    public static String getPeers(String method, String type, String service) {
+    public static String getPeers(String method, String type, String service, DataBase db) {
         Log.d(log,  method + " " + type + " " + service);
-        return null;
+        try {
+            JSONArray jsonArray = new JSONArray();
+            for (String k : db.shortPeers.keySet()) {
+                String id = k.toString();
+                String addr = db.shortPeers.get(k)[0].toString();
+                String wsAddr = db.shortPeers.get(k)[1].toString();
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", id);
+                jsonObject.put("addr", addr);
+                jsonObject.put("wsAddr", wsAddr);
+                jsonArray.put(jsonObject);
+            }
+            for (String k : db.longPeers.keySet()) {
+                String id = k.toString();
+                String addr = db.longPeers.get(k)[0].toString();
+                String wsAddr = db.longPeers.get(k)[1].toString();
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", id);
+                jsonObject.put("addr", addr);
+                jsonObject.put("wsAddr", wsAddr);
+                jsonArray.put(jsonObject);
+            }
+            return jsonArray.toString().replaceAll("\\\\","");
+        } catch (JSONException j) {
+            Log.d(log, j.toString());
+        }
+        return "";
     }
 
     //POST methods

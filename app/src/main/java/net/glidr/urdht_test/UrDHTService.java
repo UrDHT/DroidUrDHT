@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class UrDHTService extends Service {
@@ -26,18 +28,20 @@ public class UrDHTService extends Service {
 
     private static String SERVICE_NAME1 = "UrDHT_SERVICE";
     private static String SERVICE_NAME2 = "UrDHT_WS_SERVICE";
-    private static int bindPort = 8551;
-    private static int wsBindPort = 8552;
+    private static int bindPort;
+    private static int wsBindPort;
 
     private static String publicIP = "oops";
     private static String localIP = "oops";
+
+    private static Timer timer;
 
     NsdManager manager;
     NsdManager.RegistrationListener regListener;
     NsdManager.DiscoveryListener    discoListener;
     NsdManager.ResolveListener      resoListener;
 
-    public IBinder onBind(Intent arg0) {
+    public IBinder onBind(Intent i) {
         Log.d(str, "Service Started");
         return null;
     }
@@ -70,8 +74,23 @@ public class UrDHTService extends Service {
         new serviceThread().start();
         new wsServiceThread().start();
 
+        publicIP = db.gmi.publicIP;
+        localIP = db.gmi.inetAddr;
+        bindPort = Integer.parseInt(db.gmi.bindPort);
+        wsBindPort = Integer.parseInt(db.gmi.wsBindPort);
+
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new UrDHTServiceTask(), 3000, 10000);
+
         return super.onStartCommand(intent, flags, startId);
     }
+
+    private class UrDHTServiceTask extends TimerTask {
+        public void run() {
+            new DHTLogic(db).runLogic();
+        }
+    }
+
 
     /***
      * destoy service
@@ -80,6 +99,9 @@ public class UrDHTService extends Service {
     public void onDestroy() {
         //TODO
         tearDown();
+        tearDown();
+        tearDown();
+        timer.cancel();
         super.onDestroy();
         Log.d(str, "onDestroy() called!");
     }
@@ -178,22 +200,30 @@ public class UrDHTService extends Service {
                 socket.bind(new InetSocketAddress(bindPort));
 
             } catch (IOException e) {
-                Log.d(str, e.toString());
-                throw new RuntimeException(e);
+                Log.d(str, e.toString() + " 188");
             }
             int port = socket.getLocalPort();
-            registerService(port, SERVICE_NAME1);
+            try {
+                registerService(port, SERVICE_NAME1);
+            } catch (IllegalArgumentException e) {
+                Log.d(str, e.toString() + " 194");
+            }
             while(!Thread.currentThread().isInterrupted()) {
                 Socket msock;
                 try {
                     msock = socket.accept();
                     new ClientThread(msock, SERVICE_NAME1, db).start();
                 } catch (IOException e) {
-                    Log.d(str, e.toString());
-                    throw new RuntimeException(e);
+                    Log.d(str, e.toString() + " 202");
+                    Thread.currentThread().interrupt();
                 }
             }
-            tearDown();
+//            try {
+//                socket.close();
+//            } catch (IOException e) {
+//                Log.d(str, e.toString());
+//            }
+//            tearDown();
         }
     }
 
@@ -210,24 +240,31 @@ public class UrDHTService extends Service {
                 socket = new ServerSocket();
                 socket.setReuseAddress(true);
                 socket.bind(new InetSocketAddress(wsBindPort));
-
             } catch (IOException e) {
-                Log.d(str, e.toString());
-                throw new RuntimeException(e);
-            }
+                Log.d(str, e.toString() + " 228");
+             }
             int port = socket.getLocalPort();
-            registerService(port, SERVICE_NAME2);
+            try {
+                registerService(port, SERVICE_NAME2);
+            } catch (IllegalArgumentException e) {
+                Log.d(str, e.toString() + " 234");
+            }
             while(!Thread.currentThread().isInterrupted()) {
                 Socket msock = null;
                 try {
                     msock = socket.accept();
                     new WSClientThread(msock, SERVICE_NAME2, db).start();
                 } catch (IOException e) {
-                    Log.d(str, e.toString());
-                    throw new RuntimeException(e);
+                    Log.d(str, e.toString() + " 242");
+                    Thread.currentThread().interrupt();
                 }
             }
-            tearDown();
+//            try {
+//                socket.close();
+//            } catch (IOException e) {
+//                Log.d(str, e.toString());
+//            }
+//            tearDown();
         }
     }
 
@@ -238,14 +275,19 @@ public class UrDHTService extends Service {
      * @param name
      */
     public void registerService(int port, String name) {
-//        tearDown();
+        Log.d(str, port + " " + name);
+        tearDown();
         initRegistrationListener();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
         serviceInfo.setServiceName(name);
         serviceInfo.setServiceType(SERVICE_TYPE);
         serviceInfo.setPort(port);
 
-        manager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, regListener);
+        try {
+            manager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, regListener);
+        } catch (IllegalArgumentException a) {
+            Log.d(str, a.toString() + " 272");
+        }
     }
 
     /**
@@ -256,7 +298,7 @@ public class UrDHTService extends Service {
         if(regListener != null) {
             try {
                 manager.unregisterService(regListener);
-            } finally {}
+            }  finally {}
             regListener = null;
         }
     }
