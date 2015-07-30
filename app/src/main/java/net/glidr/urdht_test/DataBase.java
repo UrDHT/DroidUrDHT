@@ -1,7 +1,6 @@
 package net.glidr.urdht_test;
 
 import android.app.Application;
-import android.util.Log;
 
 
 import java.util.HashMap;
@@ -13,14 +12,17 @@ public class DataBase extends Application {
     private static String str = "DATABASE";
     public static GetMyIpAddress gmi = new GetMyIpAddress();
     public static HashFunction hash = new HashFunction();
+    public static Peer self = new Peer();
 
     public static HashMap<String, HashMap<String, String>> messages = new HashMap<String, HashMap<String, String>>();
 
     public static HashMap<String, String[]> shortPeers = new HashMap<String, String[]>();
     public static boolean shortPeersWriteLock = false;
+    public static final int maxShortPeers = 10;
 
     public static HashMap<String, String[]> longPeers = new HashMap<String, String[]>();
     public static boolean longPeersWriteLock = false;
+    public static final int maxLongPeers = 10;
 
     public static HashMap<String, Byte[]> store = new HashMap<String, Byte[]>();
     public static HashMap<String, Point[]> locations = new HashMap<String, Point[]>();

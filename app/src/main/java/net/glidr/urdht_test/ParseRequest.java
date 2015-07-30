@@ -231,6 +231,9 @@ public abstract class ParseRequest {
      */
     public static String notify(String data, String method, String type, String service) {
         Log.d(log, data + " " + method + " " + type + " " + service);
+        //StringBulder sb = new StringBuilder();
+
+
         return null;
     }
 

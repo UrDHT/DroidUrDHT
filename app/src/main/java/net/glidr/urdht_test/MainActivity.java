@@ -10,6 +10,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.os.Handler;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends Activity {
     private String str = "Android UrDHT Main Activity";
@@ -28,18 +32,31 @@ public class MainActivity extends Activity {
     TextView txtPubIP;
     TextView txtLocalBuild;
     TextView txtRemoteBuild;
+    TextView txtLogWindow;
 
     Button btnStart;
     Button btnStop;
 
+    static Timer timer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final Handler handle = new Handler();
+        final StringBuilder sb = new StringBuilder();
+
+        final Runnable update = new Runnable() {
+            public void run() {
+                updateLogWindow(sb);
+            }
+        };
+
         setContentView(R.layout.activity_main);
 
         txtLocIP = (TextView)findViewById(R.id.txtLocIP);
         txtPubIP = (TextView)findViewById(R.id.txtPubIP);
         txtLocalBuild = (TextView)findViewById(R.id.txtLocalBuild);
+        txtLogWindow = (TextView)findViewById(R.id.txtLogDisplay);
 
         txtLocalBuild.setText(build);
 
@@ -51,27 +68,34 @@ public class MainActivity extends Activity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(str, "Start Pressed");
+            Log.d(str, "Start Pressed");
 
-                new LongTaskLoc(txtLocIP, txtPubIP, db.gmi).execute();
-                new LongTaskPub(txtLocIP, txtPubIP, db.gmi).execute();
-                new LongHash(db.hash, db.gmi).execute();
+            new LongTaskLoc(txtLocIP, txtPubIP, db.gmi).execute();
+            new LongTaskPub(txtLocIP, txtPubIP, db.gmi).execute();
+            new LongHash(db.hash, db.gmi).execute();
 
-                if(started) return;
-                started = true;
-                Intent i = new Intent(MainActivity.this, UrDHTService.class);
+            if(started) return;
+            started = true;
+            Intent i = new Intent(MainActivity.this, UrDHTService.class);
 
-                MainActivity.this.startService(i);
+            MainActivity.this.startService(i);
 
-                if(!netflag) {
-                    txtLocIP.setText("No Network");
-                    txtPubIP.setText("Disconnected - STOPPED");
-                    txtRemoteBuild.setText("-NA-");
-                    MainActivity.this.stopService(i);
-                    flag1 = false;
-                    flag2 = false;
-                    flag3 = false;
+            if(!netflag) {
+                txtLocIP.setText("No Network");
+                txtPubIP.setText("Disconnected - STOPPED");
+                txtRemoteBuild.setText("-NA-");
+                MainActivity.this.stopService(i);
+                flag1 = false;
+                flag2 = false;
+                flag3 = false;
+            }
+
+            timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                public void run() {
+                    handle.post(update);
                 }
+            }, 500, 500);
             }
         });
 
@@ -91,8 +115,19 @@ public class MainActivity extends Activity {
             }
         });
 
+
     }
 
+    private void updateLogWindow(StringBuilder sb) {
+        sb.append("______________________\n\n\nCurrent peers list \n");
+        for(String k:db.shortPeers.keySet()) {
+            sb.append("id: " + k + "\n    addr:" + db.shortPeers.get(k)[0] + "\n     wsAddr:" + db.shortPeers.get(k)[1] + "\n");
+        }
+        for(String k:db.longPeers.keySet()) {
+            sb.append("id: " + k + "\n    addr:" + db.longPeers.get(k)[0] + "\n     wsAddr:" + db.longPeers.get(k)[1] + "\n");
+        }
+        txtLogWindow.setText(sb.toString());
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -179,8 +214,12 @@ public class MainActivity extends Activity {
         @Override
         protected Void doInBackground(Void... urls){
             if( this.ip.isOnline() ) {
-                this.hash.genHash("http://"+this.ip.publicIP +":"+this.ip.bindPort);
-                //this.hash.genHash("http://45.79.205.125:8002/");
+                String addr = "http://" + this.ip.publicIP + ":" + this.ip.bindPort + "/";
+                String wsAddr = "ws:/" + this.ip.publicIP + ":" + this.ip.wsBindPort + "/";
+                this.hash.genHash(addr);
+                db.self.hashID = this.hash.hash;
+                db.self.addr = addr;
+                db.self.wsAddr = addr;
             } else {
                 Log.d("AsyncTask", "No Network!");
             }

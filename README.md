@@ -1,5 +1,7 @@
 # DroidUrDHT
 
+THIS IS SOON TO BE DEPRECATED/REWORKED INTO SOMETHING MORE USEFUL ON DROID FOR THE UrDHT PROJECT!
+
 This is really REALLY messy and badly organized... it needs to be torn apart and redone. This is motly just for me to learn a bit and test things out and is not meant for any sort of production use.
 Mostly I am cutting corners because I need it to be finished in about a day and a half. you have been warned
 
